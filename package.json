@@ -1,0 +1,40 @@
+{
+    "name": "formal-language-tools",
+    "version": "1.0.0",
+    "description": "Functions for working with formal languages",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint src/**/*.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nachovigilante/formal-language-tools.git"
+    },
+    "keywords": [],
+    "author": "nachovigilante",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/nachovigilante/formal-language-tools/issues"
+    },
+    "homepage": "https://github.com/nachovigilante/formal-language-tools#readme",
+    "peerDependencies": {
+        "typescript": "*"
+    },
+    "peerDependenciesMeta": {
+        "typescript": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.5",
+        "@typescript-eslint/eslint-plugin": "^6.14.0",
+        "@typescript-eslint/parser": "^6.14.0",
+        "eslint": "^8.56.0",
+        "prettier": "^3.1.1",
+        "typescript": "^5.3.3"
+    },
+    "files": [
+        "/dist"
+    ]
+}
