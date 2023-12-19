@@ -12,6 +12,32 @@ const sameFunctionMap = <K, V>(map1: Map<K, Set<V>>, map2: Map<K, Set<V>>) => {
     );
 };
 
+describe("CFG validation tests", () => {
+    it("should not allow terminals in production heads", () => {
+        const terminals = new Set(["a", "b"]);
+        const nonTerminals = new Set(["S"]);
+        const productions = [
+            { head: "S", body: ["a"] },
+            { head: "a", body: ["b"] },
+        ];
+        expect(
+            () => new CFG(nonTerminals, terminals, productions, "S"),
+        ).toThrow();
+    });
+
+    it("should ensure all production body symbols are terminals or non-terminals", () => {
+        const terminals = new Set(["a", "b"]);
+        const nonTerminals = new Set(["S"]);
+        const productions = [
+            { head: "S", body: ["a", "b"] },
+            { head: "S", body: ["b", "c"] },
+        ];
+        expect(
+            () => new CFG(nonTerminals, terminals, productions, "S"),
+        ).toThrow();
+    });
+});
+
 describe("FIRST function tests", () => {
     it("should compute the FIRST function for a basic grammar", () => {
         const grammar = new CFG(
@@ -149,7 +175,7 @@ describe("firstOf function tests", () => {
 });
 
 describe("FOLLOW function tests", () => {
-    it("should compute the FOLLOW for a basic grammar", () => {
+    it("should compute the FOLLOW function for a basic grammar", () => {
         const grammar = new CFG(
             new Set(["S", "A", "B"]),
             new Set(["a", "b"]),
@@ -170,7 +196,7 @@ describe("FOLLOW function tests", () => {
         expect(sameFunctionMap(grammar.followMap, expectedMap)).toBe(true);
     });
 
-    it("should compute the FOLLOW for a grammar with epsilon productions", () => {
+    it("should compute the FOLLOW function for a grammar with epsilon productions", () => {
         const grammar = new CFG(
             new Set(["S", "A", "B"]),
             new Set(["a", "b"]),
@@ -192,7 +218,7 @@ describe("FOLLOW function tests", () => {
         expect(sameFunctionMap(grammar.followMap, expectedMap)).toBe(true);
     });
 
-    it("should compute the FOLLOW for a grammar with epsilon productions and cycles", () => {
+    it("should compute the FOLLOW function for a grammar with epsilon productions and cycles", () => {
         const grammar = new CFG(
             new Set(["S", "A", "B"]),
             new Set(["a", "b"]),
