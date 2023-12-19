@@ -142,3 +142,32 @@ export function firstsOf(
 
     return firsts;
 }
+
+export function computeGuidelineSymbols(
+    firstMap: Map<GrammarSymbol, Set<GrammarSymbol>>,
+    followMap: Map<GrammarSymbol, Set<GrammarSymbol>>,
+    productions: Production[],
+) {
+    const guidelineSymbols = new Map<Production, Set<GrammarSymbol>>();
+
+    for (const production of productions) {
+        const { head, body } = production;
+
+        let firsts: Set<GrammarSymbol>;
+
+        if (body.length === 1 && body[0] === EPSILON)
+            firsts = new Set([EPSILON]);
+        else firsts = firstsOf(firstMap, body);
+
+        const follows = followMap.get(head)!;
+
+        if (firsts.has(EPSILON)) {
+            firsts.delete(EPSILON);
+            addAllFrom(firsts, follows);
+        }
+
+        guidelineSymbols.set(production, firsts);
+    }
+
+    return guidelineSymbols;
+}

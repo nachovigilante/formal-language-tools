@@ -1,4 +1,5 @@
 import { EOF, EPSILON, CFG } from "../src/cfg";
+import { computeGuidelineSymbols } from "../src/grammarProperties";
 import { sameSet } from "../src/setOperations";
 
 const sameFunctionMap = <K, V>(map1: Map<K, Set<V>>, map2: Map<K, Set<V>>) => {
@@ -212,5 +213,111 @@ describe("FOLLOW function tests", () => {
         ]);
 
         expect(sameFunctionMap(grammar.followMap, expectedMap)).toBe(true);
+    });
+});
+
+describe("Guideline Symbols function tests", () => {
+    it("should compute the guideline symbols for a basic grammar", () => {
+        const grammar = new CFG(
+            new Set(["S", "A", "B"]),
+            new Set(["a", "b", "c"]),
+            [
+                { head: "S", body: ["A", "B"] },
+                { head: "A", body: ["a"] },
+                { head: "B", body: ["b"] },
+            ],
+            "S",
+        );
+
+        const expectedMap = new Map([
+            [grammar.productions[0], new Set(["a"])],
+            [grammar.productions[1], new Set(["a"])],
+            [grammar.productions[2], new Set(["b"])],
+        ]);
+
+        expect(
+            sameFunctionMap(
+                computeGuidelineSymbols(
+                    grammar.firstMap,
+                    grammar.followMap,
+                    grammar.productions,
+                ),
+                expectedMap,
+            ),
+        ).toBe(true);
+    });
+
+    it("should compute the guideline symbols for a grammar with epsilon productions", () => {
+        const grammar = new CFG(
+            new Set(["S", "A", "B"]),
+            new Set(["a", "b", "c"]),
+            [
+                { head: "S", body: ["A", "B"] },
+                { head: "A", body: ["a"] },
+                { head: "A", body: [EPSILON] },
+                { head: "B", body: ["b"] },
+            ],
+            "S",
+        );
+
+        const expectedMap = new Map([
+            [grammar.productions[0], new Set(["a", "b"])],
+            [grammar.productions[1], new Set(["a"])],
+            [grammar.productions[2], new Set(["b"])],
+            [grammar.productions[3], new Set(["b"])],
+        ]);
+
+        expect(
+            sameFunctionMap(
+                computeGuidelineSymbols(
+                    grammar.firstMap,
+                    grammar.followMap,
+                    grammar.productions,
+                ),
+                expectedMap,
+            ),
+        ).toBe(true);
+    });
+
+    it("should compute the guideline symbols for a grammar with epsilon productions and cycles", () => {
+        const grammar = new CFG(
+            new Set(["S", "A", "B"]),
+            new Set(["a", "b", "c"]),
+            [
+                { head: "S", body: ["A", "B"] },
+                { head: "A", body: ["A", "a"] },
+                { head: "A", body: [EPSILON] },
+                { head: "B", body: ["b", "B"] },
+                { head: "B", body: [EPSILON] },
+            ],
+            "S",
+        );
+
+        const expectedMap = new Map([
+            [grammar.productions[0], new Set(["a", "b", "$"])],
+            [grammar.productions[1], new Set(["a"])],
+            [grammar.productions[2], new Set(["a", "b", "$"])],
+            [grammar.productions[3], new Set(["b"])],
+            [grammar.productions[4], new Set(["$"])],
+        ]);
+
+        console.log(
+            computeGuidelineSymbols(
+                grammar.firstMap,
+                grammar.followMap,
+                grammar.productions,
+            ),
+        );
+
+        expect(
+            sameFunctionMap(
+                computeGuidelineSymbols(
+                    grammar.firstMap,
+                    grammar.followMap,
+                    grammar.productions,
+                ),
+                expectedMap,
+            ),
+        ).toBe(true);
     });
 });
