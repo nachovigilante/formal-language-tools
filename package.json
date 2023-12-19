@@ -1,6 +1,6 @@
 {
     "name": "formal-language-tools",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "Functions for working with formal languages",
     "main": "dist/index.js",
     "scripts": {

@@ -1,4 +1,12 @@
-import { addAllFrom } from "./setOperations";
+import {
+    EPSILON,
+    EOF,
+    computeFirstMap,
+    computeFollowMap,
+    firstsOf,
+} from "./grammarProperties";
+
+export { EPSILON, EOF };
 
 /**
  * A grammar symbol.
@@ -24,11 +32,42 @@ export type Production = {
     body: GrammarSymbol[];
 };
 
-export const EPSILON = "ε";
-export const EOF = "$";
-
-const hasEpsilonBody = ({ body }: Production) =>
-    body.length === 1 && body[0] === EPSILON;
+/**
+ * Ensure that the productions are valid.
+ *
+ * Productions are valid if:
+ * - The head of each production is a non-terminal.
+ * - The body of each production is a sequence of terminals, non-terminals, or epsilon.
+ * @param terminals
+ * @param nonTerminals
+ * @param productions
+ */
+function validateProductions(
+    terminals: Alphabet,
+    nonTerminals: Alphabet,
+    productions: Production[],
+) {
+    for (const production of productions) {
+        if (!nonTerminals.has(production.head)) {
+            throw new Error(
+                `Production head ${production.head} is not a non-terminal`,
+            );
+        }
+        for (const symbol of production.body) {
+            if (
+                !(
+                    symbol === EPSILON ||
+                    terminals.has(symbol) ||
+                    nonTerminals.has(symbol)
+                )
+            ) {
+                throw new Error(
+                    `Production body symbol ${symbol} is not a terminal or non-terminal`,
+                );
+            }
+        }
+    }
+}
 
 /**
  * A context free grammar.
@@ -57,133 +96,22 @@ export class CFG {
         this.productions = productions;
         this.startSymbol = startSymbol;
 
-        this.firstMap = this.computeFirstMap();
-        this.followMap = this.computeFollowMap();
-    }
+        validateProductions(this.terminals, this.nonTerminals, productions);
 
-    private computeFirstMap() {
-        const firstMap = new Map<GrammarSymbol, Set<GrammarSymbol>>();
-
-        // first(X) = {X} if X is a terminal
-        for (const terminal of this.terminals) {
-            firstMap.set(terminal, new Set([terminal]));
-        }
-
-        // Now, we need to find first(X) for all non-terminals X.
-
-        // Initially, first(X) = {} for all non-terminals
-        for (const nonTerminal of this.nonTerminals) {
-            firstMap.set(nonTerminal, new Set());
-        }
-
-        for (const { head } of this.productions.filter(hasEpsilonBody)) {
-            firstMap.get(head)!.add(EPSILON);
-        }
-
-        // We iterate over the productions until we have no more changes.
-        let changed: boolean;
-        do {
-            changed = false;
-
-            for (const production of this.productions.filter(
-                (p) => !hasEpsilonBody(p),
-            )) {
-                const { head, body } = production;
-
-                let i: number;
-                for (i = 0; i < body.length; ++i) {
-                    const firstSet = firstMap.get(head)!;
-                    const oldSize = firstSet.size;
-
-                    const firstOfBody = firstMap.get(body[i])!;
-                    addAllFrom(firstSet, firstOfBody);
-
-                    changed ||= oldSize !== firstSet.size;
-
-                    if (!firstOfBody.has(EPSILON)) break;
-                }
-
-                if (i === body.length) firstMap.get(head)!.add(EPSILON);
-            }
-        } while (changed);
-
-        return firstMap;
-    }
-
-    private computeFollowMap() {
-        const followMap = new Map<GrammarSymbol, Set<GrammarSymbol>>();
-
-        // follow(S) = {$}
-        followMap.set(this.startSymbol, new Set([EOF]));
-
-        // follow(X) = {} for all non-terminals X != S
-        for (const nonTerminal of this.nonTerminals) {
-            if (nonTerminal !== this.startSymbol) {
-                followMap.set(nonTerminal, new Set());
-            }
-        }
-
-        // We iterate over the productions until we have no more changes.
-        let changed: boolean;
-        do {
-            changed = false;
-            for (const production of this.productions) {
-                const { head, body } = production;
-
-                if (hasEpsilonBody(production)) {
-                    const followOfHead = followMap.get(head)!;
-
-                    const followSet = followMap.get(head)!;
-                    const oldSize = followSet.size;
-
-                    followSet.forEach((symbol) => followOfHead.add(symbol));
-
-                    changed ||= oldSize !== followSet.size;
-                } else {
-                    body.forEach((bodySymbol, i) => {
-                        if (this.nonTerminals.has(bodySymbol)) {
-                            const followSet = followMap.get(bodySymbol)!;
-                            const oldSize = followSet.size;
-
-                            const nextSymbols = body.slice(i + 1);
-                            const nextFirsts = this.firstsOf(nextSymbols);
-                            nextFirsts.forEach(
-                                (symbol) =>
-                                    symbol !== EPSILON && followSet.add(symbol),
-                            );
-
-                            if (nextFirsts.has(EPSILON)) {
-                                followSet.delete(EPSILON);
-                                const followOfHead = followMap.get(head)!;
-                                addAllFrom(followSet, followOfHead);
-                            }
-
-                            changed ||= oldSize !== followSet.size;
-                        }
-                    });
-                }
-            }
-        } while (changed);
-
-        return followMap;
+        this.firstMap = computeFirstMap(
+            this.terminals,
+            this.nonTerminals,
+            this.productions,
+        );
+        this.followMap = computeFollowMap(
+            this.nonTerminals,
+            this.productions,
+            this.startSymbol,
+            this.firstMap,
+        );
     }
 
     firstsOf(symbols: GrammarSymbol[]) {
-        const firsts = new Set<GrammarSymbol>();
-
-        let i = 0;
-        for (; i < symbols.length; ++i) {
-            const firstSet = this.firstMap.get(symbols[i])!;
-            firstSet.forEach(
-                (symbol) => symbol !== EPSILON && firsts.add(symbol),
-            );
-            if (!firstSet.has(EPSILON)) break;
-        }
-
-        if (i === symbols.length) {
-            firsts.add(EPSILON);
-        }
-
-        return firsts;
+        return firstsOf(this.firstMap, symbols);
     }
 }
