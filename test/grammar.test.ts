@@ -238,7 +238,7 @@ describe("FOLLOW function tests", () => {
         expect(sameFunctionMap(grammar.followMap, expectedMap)).toBe(true);
     });
 
-    it("should compute the FOLLOW function for a grammar with epsilon productions and cycles", () => {
+    it("should compute the FOLLOW function function for a grammar with epsilon productions and cycles", () => {
         const grammar = new CFG(
             new Set(["S", "A", "B"]),
             new Set(["a", "b"]),
@@ -539,8 +539,6 @@ describe("LL(1) parser tests", () => {
         expect(parser.parse(inputWord)).toEqual(expectedParseTree);
 
         const inputWord2 = ["a"];
-        expect(() => parser.parse(inputWord2)).toThrow(
-            
-        );
+        expect(() => parser.parse(inputWord2)).toThrow();
     });
 });
