@@ -32,6 +32,26 @@ export type Production = {
     body: GrammarSymbol[];
 };
 
+const RESERVED_SYMBOLS = new Set([EPSILON, EOF]);
+
+function validateNoReservedSymbols(symbols: Alphabet) {
+    for (const symbol of symbols) {
+        if (RESERVED_SYMBOLS.has(symbol)) {
+            throw new Error(`Symbol ${symbol} is reserved.`);
+        }
+    }
+}
+
+function validateNoIntersection(terminals: Alphabet, nonTerminals: Alphabet) {
+    for (const terminal of terminals) {
+        if (nonTerminals.has(terminal)) {
+            throw new Error(
+                `Terminal symbol ${terminal} is also a non-terminal.`,
+            );
+        }
+    }
+}
+
 /**
  * Ensure that the productions are valid.
  *
@@ -96,7 +116,26 @@ export class CFG {
         this.productions = productions;
         this.startSymbol = startSymbol;
 
-        validateProductions(this.terminals, this.nonTerminals, productions);
+        // Check that no reserved symbols are used.
+        validateNoReservedSymbols(this.nonTerminals);
+        validateNoReservedSymbols(this.terminals);
+
+        // Check that the start symbol is a non-terminal.
+        if (!this.nonTerminals.has(this.startSymbol)) {
+            throw new Error(
+                `Start symbol ${this.startSymbol} is not a non-terminal.`,
+            );
+        }
+
+        // Check that there is no overlap between the terminals and non-terminals.
+        validateNoIntersection(this.terminals, this.nonTerminals);
+
+        // Check that the productions are valid.
+        validateProductions(
+            this.terminals,
+            this.nonTerminals,
+            this.productions,
+        );
 
         this.firstMap = computeFirstMap(
             this.terminals,
