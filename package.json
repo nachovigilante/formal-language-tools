@@ -4,7 +4,7 @@
     "description": "Functions for working with formal languages",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -p tsconfig.build.json",
         "test": "jest",
         "lint": "eslint src/**/*.ts"
     },
