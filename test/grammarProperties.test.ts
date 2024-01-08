@@ -1,7 +1,7 @@
 import { CFG, EPSILON, EOF } from "../src";
 import { sameSet } from "../src/setOperations";
 import { sameFunctionMap } from "./testUtils";
-import { LL1Parser } from "../src/parser";
+import { LL1Parser } from "../src/parsing/ll1";
 
 describe("FIRST function tests", () => {
     it("should compute the FIRST function for a basic grammar", () => {

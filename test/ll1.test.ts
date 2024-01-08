@@ -2,10 +2,12 @@ import { CFG } from "../src";
 import {
     EPSILON,
     computeGuidelineSymbols,
-    computeLL1Table,
-    isLL1,
 } from "../src/grammarProperties";
-import { LL1Parser } from "../src/parser";
+import {
+    computeLL1Table,
+    isLL1
+} from "../src/parsing/ll1";
+import { LL1Parser } from "../src/parsing/ll1";
 import { same2DFunctionMap } from "./testUtils";
 
 describe("LL(1) table function tests", () => {

@@ -1,5 +1,4 @@
-import type { Alphabet, CFG, GrammarSymbol, Production } from "./cfg";
-import { ParseTree } from "./parser";
+import type { Alphabet, GrammarSymbol, Production } from "./cfg";
 import { addAllFrom } from "./setOperations";
 
 export const EPSILON = "ε";
@@ -171,80 +170,4 @@ export function computeGuidelineSymbols(
     }
 
     return guidelineSymbols;
-}
-
-export function computeLL1Table(
-    nonTerminals: Alphabet,
-    guidelineSymbols: Map<Production, Set<GrammarSymbol>>,
-    productions: Production[],
-) {
-    const table = new Map<GrammarSymbol, Map<GrammarSymbol, Set<Production>>>();
-
-    for (const nt of nonTerminals) {
-        table.set(nt, new Map());
-    }
-
-    for (const production of productions) {
-        const { head } = production;
-
-        const guidelineSet = guidelineSymbols.get(production)!;
-
-        guidelineSet.forEach((symbol) => {
-            const row = table.get(head)!;
-            if (!row.has(symbol)) row.set(symbol, new Set());
-            row.get(symbol)!.add(production);
-        });
-    }
-
-    return table as Map<GrammarSymbol, Map<GrammarSymbol, Set<Production>>>;
-}
-
-export function isLL1(grammar: CFG) {
-    const table = computeLL1Table(
-        grammar.nonTerminals,
-        computeGuidelineSymbols(
-            grammar.firstMap,
-            grammar.followMap,
-            grammar.productions,
-        ),
-        grammar.productions,
-    );
-
-    for (const row of table.values()) {
-        for (const productions of row.values()) {
-            if (productions.size > 1) return false;
-        }
-    }
-
-    return true;
-}
-
-// TODO: Parse tree should be a class? Maybe?
-
-export function buildParseTree(derivation: Production[]) {
-    const root = {
-        value: derivation[0].head,
-        children: [],
-    } as ParseTree;
-    const leaves = [root];
-
-    for (const production of derivation) {
-        const { head, body } = production;
-        // Add each symbol in the body as a child of the head.
-        // To find the head in the tree, we keep the leaf nodes
-
-        const headIndex = leaves.findIndex((leaf) => leaf.value === head);
-        const headNode = leaves[headIndex];
-        leaves.splice(headIndex, 1);
-                
-        const bodyNodes = body.map((symbol) => ({
-            value: symbol,
-            children: [],
-        } as ParseTree)).reverse();
-
-        headNode.children.push(...bodyNodes);
-        leaves.push(...bodyNodes);
-    }
-
-    return root;
 }
