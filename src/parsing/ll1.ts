@@ -47,8 +47,6 @@ export class LL1Parser implements Parser {
             const symbol = stack.pop()!;
             const nextSymbol = input[0];
 
-            console.log(symbol, nextSymbol);
-
             if (symbol === nextSymbol) {
                 input = input.slice(1);
                 continue;
@@ -78,8 +76,6 @@ export class LL1Parser implements Parser {
         if (input.length > 0) {
             throw new Error(`Unexpected end of input at position ${i}`);
         }
-
-        console.log(derivation);
 
         const parseTree = buildParseTree(derivation);
 
