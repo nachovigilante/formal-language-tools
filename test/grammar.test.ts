@@ -6,16 +6,7 @@ import {
 } from "../src/grammarProperties";
 import { LL1Parser } from "../src/parser";
 import { sameSet } from "../src/setOperations";
-
-const sameFunctionMap = <K, V>(map1: Map<K, Set<V>>, map2: Map<K, Set<V>>) => {
-    return (
-        map1.size === map2.size &&
-        [...map1].every(([key, value]) => {
-            const otherValue = map2.get(key)!;
-            return otherValue !== undefined && sameSet(value, otherValue);
-        })
-    );
-};
+import { same2DFunctionMap, sameFunctionMap } from "./testUtils";
 
 describe("CFG validation tests", () => {
     it("should not allow terminals in production heads", () => {
@@ -42,21 +33,6 @@ describe("CFG validation tests", () => {
         ).toThrow();
     });
 });
-
-const same2DFunctionMap = <K1, K2, V>(
-    map1: Map<K1, Map<K2, Set<V>>>,
-    map2: Map<K1, Map<K2, Set<V>>>,
-) => {
-    return (
-        map1.size === map2.size &&
-        [...map1].every(([key, value]) => {
-            const otherValue = map2.get(key)!;
-            return (
-                otherValue !== undefined && sameFunctionMap(value, otherValue)
-            );
-        })
-    );
-};
 
 describe("FIRST function tests", () => {
     it("should compute the FIRST function for a basic grammar", () => {
